@@ -1,0 +1,6 @@
+{$PV_DOMAIN} {
+    encode zstd gzip
+    reverse_proxy pv:8787 {
+        flush_interval -1
+    }
+}

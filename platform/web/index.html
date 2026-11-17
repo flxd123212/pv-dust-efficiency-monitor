@@ -1,0 +1,112 @@
+<!doctype html>
+<html lang="zh-CN">
+<head><meta charset="UTF-8"><meta name="viewport" content="width=device-width, initial-scale=1.0, viewport-fit=cover"><meta name="theme-color" content="#f5f7f8"><title>光伏监测 | PV Monitor</title></head>
+<body>
+  <section id="login" class="login-screen"><div class="login-shell">
+    <img src="/panel.jpg" class="login-photo" alt="光伏组件实景">
+    <div class="login-brand"><i data-lucide="sun"></i><div><h1>光伏监测</h1><span>PV MONITOR</span></div></div>
+    <form id="login-form"><label for="password">访问密码</label><input id="password" name="password" type="password" autocomplete="current-password" required maxlength="256"><p id="login-error" class="form-error" role="alert"></p><button class="primary" type="submit"><span>登录控制台</span><i data-lucide="arrow-right"></i></button></form>
+  </div></section>
+  <div id="app" class="app-shell" hidden>
+    <aside class="sidebar">
+      <div class="brand"><i data-lucide="sun"></i><div><strong>光伏监测</strong><small>PV MONITOR</small></div></div>
+      <div class="workspace-label">工作空间 <span id="device-id">PV01</span></div>
+      <nav class="main-nav" aria-label="主导航">
+        <button data-view="overview" class="active"><i data-lucide="layout-dashboard"></i><span>总览</span></button>
+        <button data-view="trends"><i data-lucide="chart-no-axes-combined"></i><span>数据趋势</span></button>
+        <button data-view="events"><i data-lucide="list-checks"></i><span>操作记录</span></button>
+        <button data-view="settings"><i data-lucide="settings-2"></i><span>设备设置</span></button>
+      </nav>
+      <div class="sidebar-status"><div><i data-lucide="usb"></i><span id="link-kind">串口网关</span></div><div><i data-lucide="cloud"></i><span id="cloud-status">云端未配置</span></div></div>
+      <div class="sidebar-foot"><span>STM32F407</span><span>V3.0</span></div>
+    </aside>
+    <div class="workspace">
+      <header class="topbar"><div class="page-heading"><span class="breadcrumb">设备管理 / <span id="view-label">总览</span></span><h1>光伏板运行监测</h1></div><div class="topbar-actions"><span id="device-status" class="connection-state offline"><span class="status-dot"></span><span>设备离线</span></span><span id="last-update" class="last-update">尚未接收数据</span><button id="open-access" class="icon-button" title="手机访问二维码" aria-label="手机访问二维码"><i data-lucide="qr-code"></i></button><button id="logout" class="icon-button" title="退出登录" aria-label="退出登录"><i data-lucide="log-out"></i></button></div></header>
+      <main>
+        <div id="simulation-banner" class="notice simulation" hidden><i data-lucide="flask-conical"></i><span>模拟联调 · 非真实设备数据</span></div>
+        <div id="offline-banner" class="notice"><i data-lucide="unplug"></i><span id="offline-message">设备离线，控制已锁定</span><button id="open-connection" class="text-button">连接设备<i data-lucide="arrow-right"></i></button></div>
+        <section id="view-overview" class="view">
+          <div class="section-title overview-title"><div><span class="eyebrow">LIVE TELEMETRY</span><h2>实时运行概况</h2></div><span id="mode-caption" class="subtle">等待设备</span></div>
+          <div class="metrics">
+            <div class="metric"><div class="metric-title"><span>采样电流</span><i data-lucide="zap"></i></div><div class="metric-value"><strong id="metric-current">--</strong><span>mA</span></div><div class="metric-caption" id="current-caption">等待采样</div></div>
+            <div class="metric"><div class="metric-title"><span>环境温度</span><i data-lucide="thermometer"></i></div><div class="metric-value"><strong id="metric-temp">--</strong><span>°C</span></div><div class="metric-caption" id="temp-caption">等待 SHT20</div></div>
+            <div class="metric"><div class="metric-title"><span>积灰估计</span><i data-lucide="layers"></i></div><div class="metric-value"><strong id="metric-dust">--</strong><span>%</span></div><div class="metric-caption" id="dust-caption">基准未标定</div></div>
+            <div class="metric"><div class="metric-title"><span>雨滴状态</span><i data-lucide="cloud-rain"></i></div><div class="metric-value rain-value"><strong id="metric-rain">--</strong></div><div class="metric-caption" id="rain-caption">等待采样</div></div>
+          </div>
+          <section class="extension-section" aria-label="扩展板状态">
+            <div class="section-title compact"><h3>扩展板状态</h3><span id="extension-freshness" class="subtle">等待设备</span></div>
+            <dl class="extension-facts"><div class="pir-fact"><dt><i data-lucide="user-round"></i>人体红外</dt><dd id="pir-state" role="status">等待设备</dd><small id="pir-detail">PB4 · RDA226</small></div><div><dt><i data-lucide="lightbulb"></i>LD1 指示</dt><dd id="ld1-state">--</dd><small>PC4</small></div><div><dt><i data-lucide="thermometer"></i>板面温度（估算）</dt><dd id="ntc-state">等待设备</dd><small id="ntc-detail">PA5 · ADC --</small></div></dl>
+            <div class="pir-alarm-control"><label for="pir-alarm-toggle">人体报警</label><span id="pir-alarm-state" role="status">等待设备</span><input id="pir-alarm-toggle" class="alarm-switch" type="checkbox" role="switch" aria-label="人体报警" data-control disabled></div>
+          </section>
+          <div class="overview-grid">
+            <div class="monitoring-column">
+              <section class="panel-overview"><div class="section-title compact"><h3>光伏组件</h3><span id="component-status" class="subtle">未连接</span></div><div class="panel-photo"><img src="/panel.jpg" alt="光伏组件实景参考"><span class="photo-caption">组件实景参考</span><div class="angle-overlay"><span>指令角度</span><strong><span id="panel-angle">--</span><small>°</small></strong><i data-lucide="move-up-right"></i></div></div><div class="device-facts"><div><span>目标倾角</span><strong id="target-angle">--</strong></div><div><span>清扫状态</span><strong id="cleaning-state">--</strong></div><div><span>运行时长</span><strong id="uptime">--</strong></div></div></section>
+              <section class="current-chart-section"><div class="section-title compact"><h3>采样电流</h3><span class="subtle">最近 1 小时 · mA</span></div><div class="chart-wrap overview-chart"><canvas id="overview-chart" aria-label="采样电流趋势"></canvas><span id="overview-empty" class="chart-empty">暂无设备数据</span></div></section>
+            </div>
+            <section class="control-section">
+              <div class="section-title compact"><h3>运行控制</h3><i data-lucide="sliders-horizontal" class="section-icon"></i></div>
+              <div class="control-label"><label>清扫模式</label><span id="mode-state">--</span></div>
+              <div class="segmented mode-control" role="group" aria-label="清扫模式"><button id="mode-manual" data-control>手动</button><button id="mode-auto" data-control>自动清扫</button></div>
+              <section class="actuator-section" aria-label="舵机与雨天联动">
+                <div class="control-label automation-status"><span><i data-lucide="cloud-rain"></i>雨天联动</span><strong id="rain-automation" role="status">等待设备</strong></div>
+                <div class="actuator-heading"><h4>舵机状态</h4><span id="actuator-freshness">等待设备</span></div>
+                <dl class="actuator-facts"><div><dt>指令角度</dt><dd id="servo-angle">--</dd></div><div><dt>目标角度</dt><dd id="servo-target">--</dd></div><div><dt>动作状态</dt><dd id="servo-motion">--</dd></div></dl>
+                <meter id="servo-angle-meter" min="0" max="90" value="0" aria-label="舵机指令角度" hidden></meter>
+                <div class="position-actions"><button id="servo-stow" class="secondary" title="收起至 0 度" data-control><i data-lucide="arrow-down-to-line"></i><span>0° 收起</span></button><button id="servo-shield" class="secondary" title="挡雨至 90 度" data-control><i data-lucide="shield-check"></i><span>90° 挡雨</span></button></div>
+                <p id="actuator-constraint" class="control-constraint" role="status">等待设备</p>
+                <div class="safety-actions"><button id="safe-stop" class="danger" data-control><i data-lucide="octagon-pause"></i><span>停止所有动作</span></button><button id="resume-motion" class="secondary" data-control hidden><i data-lucide="rotate-cw"></i><span>恢复联动</span></button></div>
+              </section>
+              <div class="control-label angle-label"><label for="angle-range">目标倾角</label><output id="angle-output" for="angle-range">0°</output></div><input id="angle-range" type="range" min="0" max="90" step="1" value="0" data-control><div class="range-marks"><span>0° 收起</span><span>45°</span><span>90° 挡雨</span></div>
+              <div class="angle-actions"><button id="angle-minus" class="icon-button" title="降低 5 度" aria-label="降低 5 度" data-control><i data-lucide="minus"></i></button><button id="angle-apply" class="secondary" data-control><i data-lucide="check"></i><span>设置倾角</span></button><button id="angle-plus" class="icon-button" title="升高 5 度" aria-label="升高 5 度" data-control><i data-lucide="plus"></i></button></div>
+              <div class="cleaner-command"><div class="control-label"><span>组件清扫</span><span id="clean-limit">-- 秒上限</span></div><button id="clean-toggle" class="primary" data-control><i data-lucide="brush-cleaning"></i><span id="clean-button-text">启动清扫</span></button></div>
+              <p id="clean-constraint" class="control-constraint" role="status">等待设备</p>
+              <div class="alarm-state" id="alarm-state"><i data-lucide="shield-check"></i><div><strong id="alarm-title">无活动报警</strong><span id="alarm-detail">等待设备状态</span></div><button id="silence" class="icon-button" title="静音 60 秒" aria-label="静音 60 秒" data-control><i data-lucide="bell-off"></i></button></div>
+              <div id="command-status" class="command-status" aria-live="polite"><span class="status-dot"></span><span>等待设备连接</span></div>
+            </section>
+          </div>
+          <section class="recent-section"><div class="section-title compact"><h3>最近操作</h3><button id="all-events" class="text-button">全部记录<i data-lucide="arrow-right"></i></button></div><div id="recent-events" class="recent-events"><p class="empty-state">暂无操作记录</p></div></section>
+        </section>
+        <section id="view-trends" class="view" hidden>
+          <div class="section-title"><div><span class="eyebrow">HISTORY</span><h2>数据趋势</h2></div><button id="export-csv" class="secondary"><i data-lucide="download"></i><span>导出 CSV</span></button></div>
+          <div class="chart-toolbar"><div class="segmented" id="time-ranges" role="group" aria-label="时间范围"><button data-hours="1" class="active">1 小时</button><button data-hours="6">6 小时</button><button data-hours="24">24 小时</button><button data-hours="168">7 天</button></div><label class="select-label">指标<select id="chart-metric"><option value="current">采样电流</option><option value="panelTemp">环境温度</option><option value="dustLevel">积灰估计</option><option value="tiltAngle">指令角度</option></select></label></div>
+          <div class="chart-wrap trend-chart"><canvas id="trend-chart" aria-label="历史数据趋势"></canvas><span id="trend-empty" class="chart-empty">暂无历史数据</span></div>
+          <div class="section-title compact"><h3>采样记录</h3><span id="history-count" class="subtle">0 条</span></div><div class="table-scroll"><table><thead><tr><th>时间</th><th>电流 mA</th><th>环境温度 °C</th><th>积灰估计 %</th><th>角度 °</th><th>状态</th></tr></thead><tbody id="history-rows"></tbody></table></div>
+        </section>
+        <section id="view-events" class="view" hidden>
+          <div class="section-title"><div><span class="eyebrow">AUDIT LOG</span><h2>操作记录</h2></div><button id="refresh-events" class="icon-button" title="刷新记录" aria-label="刷新记录"><i data-lucide="rotate-cw"></i></button></div><div class="filter-row"><label class="select-label">执行状态<select id="event-filter"><option value="all">全部</option><option value="success">已应用</option><option value="rejected">未应用</option></select></label><span id="event-count" class="subtle">0 条记录</span></div><div id="event-list" class="event-list"></div>
+        </section>
+        <section id="view-settings" class="view" hidden>
+          <div class="section-title"><div><span class="eyebrow">CONFIGURATION</span><h2>设备设置</h2></div><span id="saved-status" class="subtle">等待设备</span></div>
+          <div class="settings-grid">
+            <section class="settings-section"><div class="section-title compact"><h3>运行参数</h3><i data-lucide="sliders-horizontal" class="section-icon"></i></div>
+              <form id="settings-form"><div class="form-grid">
+                <label>积灰估计阈值<span class="number-field"><input name="dustThreshold" type="number" min="10" max="90" step="1" required data-control><span>%</span></span></label>
+                <label>温度保护阈值<span class="number-field"><input name="tempThreshold" type="number" min="35" max="90" step="1" required data-control><span>°C</span></span></label>
+                <label>单次清扫时长<span class="number-field"><input name="cleanSeconds" type="number" min="3" max="30" step="1" required data-control><span>秒</span></span></label>
+                <label>自动清扫间隔<span class="number-field"><input name="autoCooldownS" type="number" min="60" max="3600" step="1" required data-control><span>秒</span></span></label>
+              </div><div class="form-actions"><button class="secondary" type="submit" data-control><i data-lucide="check"></i><span>应用参数</span></button><button id="save-settings" class="primary" type="button" data-control><i data-lucide="save"></i><span>写入设备</span></button></div></form>
+              <div class="baseline-row"><div><span>清洁电流基准</span><strong id="baseline-value">-- mA</strong></div><button id="calibrate-baseline" class="secondary" data-control><i data-lucide="crosshair"></i><span>标定基准</span></button></div><div class="quality-note"><i data-lucide="info"></i><span>积灰为相对电流损失估计，云层、遮挡也会影响结果。</span></div>
+            </section>
+            <section class="settings-section"><div class="section-title compact"><h3>连接状态</h3><i data-lucide="network"></i></div>
+              <form id="connection-form"><label for="serial-port">USB 串口</label><div class="port-row"><select id="serial-port"><option value="">未选择</option></select><button id="refresh-ports" class="icon-button" type="button" title="刷新串口" aria-label="刷新串口"><i data-lucide="rotate-cw"></i></button></div><button id="connect-port" class="secondary" type="submit"><i data-lucide="plug"></i><span>连接</span></button><button id="disconnect-port" class="text-button" type="button">断开连接</button></form>
+              <dl class="connection-details"><div><dt>设备编号</dt><dd id="setting-device-id">PV01</dd></div><div><dt>串口链路</dt><dd id="setting-link">未连接</dd></div><div><dt>云端 MQTT</dt><dd id="setting-cloud">未配置</dd></div><div><dt>上报确认时间</dt><dd id="setting-cloud-report">--</dd></div><div><dt>已确认字段</dt><dd id="setting-cloud-fields">--</dd></div><div><dt>采样质量</dt><dd id="setting-quality">--</dd></div><div><dt>ADC 原始值</dt><dd id="setting-adc">-- / --</dd></div><div><dt>程序运行时间</dt><dd id="setting-uptime">--</dd></div></dl>
+            </section>
+          </div>
+        </section>
+      </main>
+      <footer class="workspace-footer"><span>PV MONITOR <span class="footer-separator">/</span> 光伏运行工作台</span><span id="footer-source">等待设备数据</span></footer>
+    </div>
+  </div>
+  <div id="toast" class="toast" role="status" hidden></div>
+  <dialog id="confirm-dialog"><form method="dialog"><h3 id="confirm-title"></h3><p id="confirm-text"></p><div class="dialog-actions"><button value="cancel" class="secondary">取消</button><button value="confirm" class="primary">确认</button></div></form></dialog>
+  <dialog id="access-dialog" class="access-dialog" aria-labelledby="access-title">
+    <div class="access-heading"><h3 id="access-title">手机访问</h3><button id="close-access" class="icon-button" title="关闭" aria-label="关闭手机访问"><i data-lucide="x"></i></button></div>
+    <label for="access-network">网络地址</label><select id="access-network"><option value="">正在读取</option></select>
+    <div class="access-qr-wrap"><canvas id="access-qr" width="256" height="256" aria-label="手机访问二维码" hidden></canvas><span id="access-empty">正在读取网络地址</span></div>
+    <a id="access-url" class="access-url" target="_blank" rel="noopener noreferrer" hidden></a>
+    <div class="access-foot"><span id="access-status" class="subtle" role="status"></span><div class="access-tools"><button id="copy-access" class="icon-button" title="复制地址" aria-label="复制地址" disabled><i data-lucide="copy"></i></button><button id="download-access" class="icon-button" title="下载二维码" aria-label="下载二维码" disabled><i data-lucide="download"></i></button><button id="refresh-access" class="icon-button" title="刷新访问地址" aria-label="刷新访问地址"><i data-lucide="rotate-cw"></i></button></div></div>
+    <p class="access-warning" id="access-warning"><i data-lucide="shield-check"></i><span>校园网设备隔离可能阻止连接</span></p>
+  </dialog>
+  <script type="module" src="/src/main.js"></script>
+</body>
+</html>

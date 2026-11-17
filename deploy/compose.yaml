@@ -1,0 +1,43 @@
+services:
+  pv:
+    build:
+      context: ../platform
+    restart: unless-stopped
+    environment:
+      PV_ROLE: cloud
+      PV_DEVICE_ID: ${PV_DEVICE_ID:-PV01}
+      PV_PASSWORD: ${PV_PASSWORD:?Set a private password of at least 12 characters}
+      PV_PUBLIC_URL: https://${PV_DOMAIN:?Set a public DNS hostname}
+      PV_MQTT_URL: ${PV_MQTT_URL:?Set a TLS MQTT broker URL}
+      PV_MQTT_USERNAME: ${PV_MQTT_USERNAME:?Set a cloud broker account}
+      PV_MQTT_PASSWORD: ${PV_MQTT_PASSWORD:?Set the cloud broker password}
+    volumes:
+      - pv-data:/app/data
+    security_opt:
+      - no-new-privileges:true
+    cap_drop:
+      - ALL
+    healthcheck:
+      test: ["CMD", "node", "-e", "fetch('http://127.0.0.1:8787/health').then(r=>process.exit(r.ok?0:1)).catch(()=>process.exit(1))"]
+      interval: 30s
+      timeout: 5s
+      retries: 3
+  caddy:
+    image: caddy:2-alpine
+    restart: unless-stopped
+    environment:
+      PV_DOMAIN: ${PV_DOMAIN}
+    ports:
+      - "80:80"
+      - "443:443"
+    volumes:
+      - ./Caddyfile:/etc/caddy/Caddyfile:ro
+      - caddy-data:/data
+      - caddy-config:/config
+    depends_on:
+      pv:
+        condition: service_healthy
+volumes:
+  pv-data:
+  caddy-data:
+  caddy-config:
